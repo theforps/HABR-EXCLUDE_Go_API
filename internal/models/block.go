@@ -4,8 +4,7 @@ import "time"
 
 type Block struct {
 	Id          string    `json:"id"`
-	GlobalType  string    `json:"global_type"`
-	Type        string    `json:"type"`
+	Types       []string  `json:"types"`
 	Title       string    `json:"title"`
 	Author      string    `json:"author"`
 	Views       string    `json:"views"`
@@ -18,7 +17,6 @@ type Block struct {
 }
 
 type BlockInfo struct {
-	
 }
 
 const (
