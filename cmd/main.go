@@ -20,7 +20,6 @@ func main() {
 	app := fiber.New(fiber.Config{
 		GETOnly: true,
 		AppName: "HABR EXCLUDE",
-		
 	})
 
 	handlers.InitHandler(app, config, baseLog)
