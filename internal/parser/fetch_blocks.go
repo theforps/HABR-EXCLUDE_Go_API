@@ -34,7 +34,7 @@ func (af *BlockFetcher) GetAll(globalType int, page int) ([]*models.Block, error
 	}
 
 	select {
-	case err := <- errCh:
+	case err := <-errCh:
 		if err != nil {
 			return nil, err
 		}

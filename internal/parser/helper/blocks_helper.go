@@ -38,12 +38,12 @@ func (bh *BlocksHelper) GetBlocksAsync(globalType int, pageNum int) (chan *model
 			ParseFunc: func(g *geziyor.Geziyor, r *client.Response) {
 				if r.Response.StatusCode != 200 {
 					errCh <- ErrBadRequest
-					return 
+					return
 				}
-				
+
 				if err := parsePreviewNodes(r, results); err != nil {
 					errCh <- err
-					return 
+					return
 				}
 			},
 		}).Start()
@@ -53,17 +53,17 @@ func (bh *BlocksHelper) GetBlocksAsync(globalType int, pageNum int) (chan *model
 }
 
 func (bh *BlocksHelper) buildURL(globalType, pageNum int) string {
-	var url string 
+	var url string
 
 	switch globalType {
-		case models.Article:
-			url = bh.config.ArticleUrl
-		case models.News:
-			url = bh.config.NewsUrl
-		case models.Post:
-			url = bh.config.PostUrl
-		default:
-			url = bh.config.SearchUrl
+	case models.Article:
+		url = bh.config.ArticleUrl
+	case models.News:
+		url = bh.config.NewsUrl
+	case models.Post:
+		url = bh.config.PostUrl
+	default:
+		url = bh.config.SearchUrl
 	}
 
 	if pageNum > 1 {
@@ -79,7 +79,7 @@ func parsePreviewNodes(r *client.Response, results chan *models.Block) error {
 
 	r.HTMLDoc.Find("article.tm-articles-list__item").Each(func(i int, s *goquery.Selection) {
 		if mainError != nil {
-			return 
+			return
 		}
 
 		article, err := parsePreviewNode(s)
@@ -141,9 +141,14 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 	})
 	descriptionStr := strings.TrimSpace(description.String())
 
+	address, ok := s.Find("a.tm-title__link").Attr("href")
+	if !ok {
+		return nil, ErrAttrNotFound
+	}
+
 	return &models.Block{
 		Id:          id,
-		Types:        types,
+		Types:       types,
 		Title:       title,
 		Author:      author,
 		Views:       views,
@@ -153,5 +158,6 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 		Tags:        tags,
 		Image:       image,
 		Description: descriptionStr,
+		URL:         address,
 	}, nil
 }

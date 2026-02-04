@@ -8,23 +8,43 @@ import (
 
 type BlocksService struct {
 	blockFetcher parser.Fetcher[interface{}, *models.Block]
-	logger *log.Logger
+	logger       *log.Logger
 }
 
-func NewArticleService(conf *models.Config , log *log.Logger) *BlocksService {
+func NewArticleService(conf *models.Config, log *log.Logger) *BlocksService {
 	return &BlocksService{
 		blockFetcher: parser.NewBlockFetcher(conf),
-		logger: log,
+		logger:       log,
 	}
 }
 
-func (as *BlocksService) GetAll(globalType, page int) ([]*models.Block, error) {
+func (as *BlocksService) GetAll(globalType, page int) (*models.BlocksDTO, error) {
 
-	result, err := as.blockFetcher.GetAll(globalType, page)
+	blocks, err := as.blockFetcher.GetAll(globalType, page)
 	if err != nil {
 		as.logger.Println(err)
 		return nil, err
 	}
 
+	result := &models.BlocksDTO{
+		Type:       getType(globalType),
+		Content:    blocks,
+		PageNumber: page,
+		Count:      len(blocks),
+	}
+
 	return result, nil
+}
+
+func getType(num int) string {
+	switch num {
+	case models.Article:
+		return "articles"
+	case models.News:
+		return "news"
+	case models.Post:
+		return "posts"
+	default:
+		return "search"
+	}
 }

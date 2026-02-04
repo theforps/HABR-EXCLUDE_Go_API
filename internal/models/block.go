@@ -5,6 +5,7 @@ import "time"
 type Block struct {
 	Id          string    `json:"id"`
 	Types       []string  `json:"types"`
+	URL         string    `json:"url"`
 	Title       string    `json:"title"`
 	Author      string    `json:"author"`
 	Views       string    `json:"views"`
@@ -16,7 +17,11 @@ type Block struct {
 	Description string    `json:"description"`
 }
 
-type BlockInfo struct {
+type BlocksDTO struct {
+	Type       string   `json:"type"`
+	PageNumber int      `json:"page"`
+	Count      int      `json:"current_count"`
+	Content    []*Block `json:"blocks"`
 }
 
 const (
