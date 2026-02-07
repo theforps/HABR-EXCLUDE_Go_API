@@ -12,11 +12,13 @@ import (
 
 type handler struct {
 	articleService *services.BlocksService
+	validator *ValidateModel
 }
 
 func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 
 	handler := handler{
+		validator: NewValidateModel(),
 		articleService: services.NewArticleService(conf, log),
 	}
 
@@ -27,13 +29,18 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 
 func (h *handler) GetBlocks(c fiber.Ctx) error {
 
+	req := &GetBlocksRequest{}
+	if err := h.validator.ValidateRequest(c, req); err != nil {
+		return err
+	}
+
 	filter := &models.BlocksFilter{
-		Sort:   c.Query("sort", models.SortNew),
-		Period: c.Query("period", models.PeriodDaily),
-		Rate:   c.Query("rate", models.ViewsAll),
-		Level:  c.Query("level", models.LevelAll),
-		Page:   c.Query("page", "1"),
-		Type:   c.Query("type", models.ContentTypeArticle),
+		Sort:   req.Sort,
+		Period: req.Period,
+		Rate:   req.Rate,
+		Level:  req.Level,
+		Page:   req.Page,
+		Type:   req.Type,
 	}
 
 	results, err := h.articleService.GetAll(filter)
@@ -55,10 +62,15 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 
 func (h *handler) SearchBlocks(c fiber.Ctx) error {
 
+	req := &SearchBlocksRequest{}
+	if err := h.validator.ValidateRequest(c, req); err != nil {
+		return err
+	}
+
 	filter := &models.BlocksFilter{
-		Sort:  c.Query("sort", models.SearchSortRelevance),
-		Query: c.Query("query", ""),
-		Page:   c.Query("page", "1"),
+		Sort:  req.Sort,
+		Query: req.Query,
+		Page:  req.Page,
 	}
 
 	results, err := h.articleService.GetAll(filter)
