@@ -2,12 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"habrexclude/internal/models"
 	"habrexclude/internal/services"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -24,25 +22,21 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 
 	api := app.Group("/api")
 	api.Get("/get-blocks", handler.GetBlocks)
+	api.Get("/search-blocks", handler.SearchBlocks)
 }
 
 func (h *handler) GetBlocks(c fiber.Ctx) error {
 
-	pageCountStr := c.Query("page", "1")
-	pageCountNum, err := strconv.Atoi(pageCountStr)
-	if err != nil || pageCountNum < 1 || pageCountNum > 50 {
-		c.Response().Header.SetStatusCode(http.StatusBadRequest)
-		return c.SendString(fmt.Sprintf("Invalid page count (1-50): %s", err.Error()))
+	filter := &models.BlocksFilter{
+		Sort:   c.Query("sort", models.SortNew),
+		Period: c.Query("period", models.PeriodDaily),
+		Rate:   c.Query("rate", models.ViewsAll),
+		Level:  c.Query("level", models.LevelAll),
+		Page:   c.Query("page", "1"),
+		Type:   c.Query("type", models.ContentTypeArticle),
 	}
 
-	blockType := c.Query("type", "1")
-	blockTypeNum, err := strconv.Atoi(blockType)
-	if err != nil || blockTypeNum < 0 || blockTypeNum > 3 {
-		c.Response().Header.SetStatusCode(http.StatusBadRequest)
-		return c.SendString(fmt.Sprintf("Invalid type (0-3): %s", err.Error()))
-	}
-
-	results, err := h.articleService.GetAll(blockTypeNum, pageCountNum)
+	results, err := h.articleService.GetAll(filter)
 	if err != nil {
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
 		return c.SendString("Coudn't get blocks")
@@ -59,6 +53,32 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 	return c.Send(jsonBody)
 }
 
-// GetBlockInfo
+func (h *handler) SearchBlocks(c fiber.Ctx) error {
 
-// SearchBlock
+	filter := &models.BlocksFilter{
+		Sort:  c.Query("sort", models.SearchSortRelevance),
+		Query: c.Query("query", ""),
+		Page:   c.Query("page", "1"),
+	}
+
+	results, err := h.articleService.GetAll(filter)
+	if err != nil {
+		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
+		return c.SendString("Coudn't get blocks")
+	}
+
+	jsonBody, err := json.Marshal(results)
+	if err != nil {
+		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
+		return c.SendString("Coudn't marshal blocks")
+	}
+
+	c.Response().Header.SetStatusCode(http.StatusOK)
+	c.Response().Header.Set("Content-Type", "application/json")
+	return c.Send(jsonBody)
+}
+
+func (h *handler) GetBlockInfo(c fiber.Ctx) error {
+
+	return c.SendStatus(http.StatusAccepted)
+}
