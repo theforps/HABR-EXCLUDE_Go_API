@@ -3,7 +3,6 @@ package helper
 import (
 	"habrexclude/internal/models"
 
-	"strconv"
 	"strings"
 	"time"
 
@@ -12,25 +11,19 @@ import (
 	"github.com/geziyor/geziyor/client"
 )
 
-type BlocksHelper struct {
-	config *models.Config
+type BlocksHelper struct {}
+
+func NewBlocksHelper() *BlocksHelper {
+	return &BlocksHelper{}
 }
 
-func NewBlocksHelper(conf *models.Config) *BlocksHelper {
-	return &BlocksHelper{
-		config: conf,
-	}
-}
-
-func (bh *BlocksHelper) GetBlocksAsync(globalType int, pageNum int) (chan *models.Block, chan error) {
+func (bh *BlocksHelper) GetBlocksAsync(URL string) (chan *models.Block, chan error) {
 	results := make(chan *models.Block)
 	errCh := make(chan error, 1)
 
 	go func() {
 		defer close(results)
 		defer close(errCh)
-
-		URL := bh.buildURL(globalType, pageNum)
 
 		geziyor.NewGeziyor(&geziyor.Options{
 			StartURLs:   []string{URL},
@@ -50,27 +43,6 @@ func (bh *BlocksHelper) GetBlocksAsync(globalType int, pageNum int) (chan *model
 	}()
 
 	return results, errCh
-}
-
-func (bh *BlocksHelper) buildURL(globalType, pageNum int) string {
-	var url string
-
-	switch globalType {
-	case models.Article:
-		url = bh.config.ArticleUrl
-	case models.News:
-		url = bh.config.NewsUrl
-	case models.Post:
-		url = bh.config.PostUrl
-	default:
-		url = bh.config.SearchUrl
-	}
-
-	if pageNum > 1 {
-		url += "/page" + strconv.Itoa(pageNum)
-	}
-
-	return url
 }
 
 func parsePreviewNodes(r *client.Response, results chan *models.Block) error {
@@ -116,7 +88,7 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 	title := s.Find("a.tm-title__link span").Text()
 
 	var types []string
-	s.Find("div.tm-publication-label span").Each(func(i int, s *goquery.Selection) {
+	s.Find("div.tm-publication-label a").Each(func(i int, s *goquery.Selection) {
 		typeStr := strings.TrimSpace(s.Text())
 		if typeStr != "" {
 			types = append(types, typeStr)
