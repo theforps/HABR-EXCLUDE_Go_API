@@ -1,50 +1,87 @@
 package services
 
 import (
+	"fmt"
 	"habrexclude/internal/models"
 	"habrexclude/internal/parser"
 	"log"
 )
 
 type BlocksService struct {
-	blockFetcher parser.Fetcher[interface{}, *models.Block]
+	blockFetcher *parser.BlocksFetcher
 	logger       *log.Logger
+	config *models.Config
+
 }
 
 func NewArticleService(conf *models.Config, log *log.Logger) *BlocksService {
 	return &BlocksService{
-		blockFetcher: parser.NewBlockFetcher(conf),
+		blockFetcher: parser.NewBlocksFetcher(),
 		logger:       log,
+		config: conf,
 	}
 }
 
-func (as *BlocksService) GetAll(globalType, page int) (*models.BlocksDTO, error) {
+func (as *BlocksService) GetAll(filter *models.BlocksFilter) (*models.BlocksDTO, error) {
 
-	blocks, err := as.blockFetcher.GetAll(globalType, page)
+	URL := as.BuildURL(filter)
+	blocks, err := as.blockFetcher.GetAll(URL)
 	if err != nil {
 		as.logger.Println(err)
 		return nil, err
 	}
 
 	result := &models.BlocksDTO{
-		Type:       getType(globalType),
-		Content:    blocks,
-		PageNumber: page,
-		Count:      len(blocks),
+		Filter:      filter,
+		Content:     blocks,
+		CountBlocks: len(blocks),
 	}
 
 	return result, nil
 }
 
-func getType(num int) string {
-	switch num {
-	case models.Article:
-		return "articles"
-	case models.News:
-		return "news"
-	case models.Post:
-		return "posts"
-	default:
-		return "search"
+func (bh *BlocksService) BuildURL(filter *models.BlocksFilter) string {
+	var url string
+
+	if filter.Query != "" {
+		// Поисковой запрос
+		url = bh.config.SearchUrl
+
+		// Пагинация
+		if filter.Page != "1" {
+			url += filter.Page + "/"
+		}
+
+		url += fmt.Sprintf("?q=%s&target_type=posts&order=%s", 
+		filter.Query, filter.Sort)
+	} else {
+		switch filter.Type {
+		// Обычный запрос контента
+		case models.ContentTypeArticle:
+			url = bh.config.ArticleUrl
+		case models.ContentTypeNews:
+			url = bh.config.NewsUrl
+		case models.ContentTypePost:
+			url = bh.config.PostUrl
+		}
+
+		// Добавление сортировки и фильтров
+		if filter.Sort == models.SortTop {
+			url += models.SortTop + "/" + filter.Period + "/"
+		} else if filter.Rate != models.ViewsAll {
+			url += filter.Rate + "/"
+		}
+
+		// Уровень сложности только для статей
+		if filter.Type == models.ContentTypeArticle && filter.Level != models.LevelAll {
+			url += filter.Level + "/"
+		}
+
+		// Пагинация
+		if filter.Page != "1" {
+			url += "page" + filter.Page
+		}
 	}
+
+	return url
 }
