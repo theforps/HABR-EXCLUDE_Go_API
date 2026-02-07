@@ -4,7 +4,7 @@ import (
 	"habrexclude/internal/models"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v2"
 )
 
 type GetBlocksRequest struct {
@@ -19,10 +19,10 @@ type GetBlocksRequest struct {
 type SearchBlocksRequest struct {
 	Query string `query:"query" validate:"required,min=1,max=100"`
 	Sort  string `query:"sort" validate:"omitempty,oneof=relevance date rating"`
-	Page  string `query:"page" validate:"omitempty,numeric,min=1"`
+	Page  string `query:"page" validate:"omitempty,numeric,min=1,max=50"`
 }
 
-type ValidateModel struct{
+type ValidateModel struct {
 	validate *validator.Validate
 }
 
@@ -32,26 +32,26 @@ func NewValidateModel() *ValidateModel {
 	}
 }
 
-func (v *ValidateModel) ValidateRequest(c fiber.Ctx, req interface{}) error {
-    switch r := req.(type) {
-    case *GetBlocksRequest:
-        r.Sort = c.Query("sort", models.SortNew)
-        r.Period = c.Query("period", models.PeriodDaily)
-        r.Rate = c.Query("rate", models.ViewsAll)
-        r.Level = c.Query("level", models.LevelAll)
-        r.Page = c.Query("page", "1")
-        r.Type = c.Query("type", models.ContentTypeArticle)
-    case *SearchBlocksRequest:
-        r.Query = c.Query("query", "")
-        r.Sort = c.Query("sort", models.SearchSortRelevance)
-        r.Page = c.Query("page", "1")
-    default:
-        return fiber.NewError(fiber.StatusBadRequest, "Unsupported request type")
-    }
+func (v *ValidateModel) ValidateRequest(c *fiber.Ctx, req interface{}) error {
+	switch r := req.(type) {
+	case *GetBlocksRequest:
+		r.Sort = c.Query("sort", models.SortNew)
+		r.Period = c.Query("period", models.PeriodDaily)
+		r.Rate = c.Query("rate", models.ViewsAll)
+		r.Level = c.Query("level", models.LevelAll)
+		r.Page = c.Query("page", "1")
+		r.Type = c.Query("type", models.ContentTypeArticle)
+	case *SearchBlocksRequest:
+		r.Query = c.Query("query", "")
+		r.Sort = c.Query("sort", models.SearchSortRelevance)
+		r.Page = c.Query("page", "1")
+	default:
+		return fiber.NewError(fiber.StatusBadRequest, "Unsupported request type")
+	}
 
-    if err := v.validate.Struct(req); err != nil {
-        return fiber.NewError(fiber.StatusBadRequest, err.Error())
-    }
+	if err := v.validate.Struct(req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
 
-    return nil
+	return nil
 }
