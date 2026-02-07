@@ -5,28 +5,19 @@ import (
 	"habrexclude/internal/parser/helper"
 )
 
-type BlockFetcher struct {
-	config *models.Config
+type BlocksFetcher struct {
 	helper *helper.BlocksHelper
 }
 
-func NewBlockFetcher(conf *models.Config) *BlockFetcher {
-	return &BlockFetcher{
-		config: conf,
-		helper: helper.NewBlocksHelper(conf),
+func NewBlocksFetcher() *BlocksFetcher {
+	return &BlocksFetcher{
+		helper: helper.NewBlocksHelper(),
 	}
 }
 
-func (af *BlockFetcher) GetById(id string) (interface{}, error) {
+func (af *BlocksFetcher) GetAll(URL string) ([]*models.Block, error) {
 
-	test := &models.Block{}
-
-	return test, nil
-}
-
-func (af *BlockFetcher) GetAll(globalType int, page int) ([]*models.Block, error) {
-
-	ch, errCh := af.helper.GetBlocksAsync(globalType, page)
+	ch, errCh := af.helper.GetBlocksAsync(URL)
 
 	var results []*models.Block
 	for block := range ch {
