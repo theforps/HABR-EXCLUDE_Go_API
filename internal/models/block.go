@@ -18,15 +18,17 @@ type Block struct {
 }
 
 type BlocksDTO struct {
-	Type       string   `json:"type"`
-	PageNumber int      `json:"page"`
-	Count      int      `json:"current_count"`
-	Content    []*Block `json:"blocks"`
+	Filter      *BlocksFilter `json:"filters"`
+	CountBlocks int           `json:"count_block"`
+	Content     []*Block      `json:"blocks"`
 }
 
-const (
-	Post = iota
-	Article
-	News
-	Search
-)
+type BlocksFilter struct {
+	Sort   string
+	Query  string
+	Period string
+	Rate   string
+	Level  string
+	Page   string
+	Type   string
+}
