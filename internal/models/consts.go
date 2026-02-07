@@ -31,7 +31,7 @@ const (
 )
 
 const (
-	SortNew = ""
+	SortNew = "new"
 	SortTop = "top"
 )
 
