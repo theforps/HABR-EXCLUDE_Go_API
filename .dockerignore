@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment files (keep .env.example for Docker builds)
+.env
+
+# Documentation
+README.md
+docs/
+
+# Tests
+tests/
+
+# Scripts (except those needed for build)
+scripts/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp

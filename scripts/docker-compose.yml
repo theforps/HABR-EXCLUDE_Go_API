@@ -1,0 +1,9 @@
+services:
+  habr-parser:
+    build:
+      context: ..
+      dockerfile: scripts/Dockerfile
+    ports:
+      - "80:3030"
+    restart: unless-stopped
+    container_name: habr-parser-service
