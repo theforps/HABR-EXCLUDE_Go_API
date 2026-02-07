@@ -2,16 +2,14 @@ package helper
 
 import (
 	"habrexclude/internal/models"
-
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/geziyor/geziyor"
-	"github.com/geziyor/geziyor/client"
 )
 
-type BlocksHelper struct {}
+type BlocksHelper struct{}
 
 func NewBlocksHelper() *BlocksHelper {
 	return &BlocksHelper{}
@@ -25,31 +23,21 @@ func (bh *BlocksHelper) GetBlocksAsync(URL string) (chan *models.Block, chan err
 		defer close(results)
 		defer close(errCh)
 
-		geziyor.NewGeziyor(&geziyor.Options{
-			StartURLs:   []string{URL},
-			LogDisabled: true,
-			ParseFunc: func(g *geziyor.Geziyor, r *client.Response) {
-				if r.Response.StatusCode != 200 {
-					errCh <- ErrBadRequest
-					return
-				}
-
-				if err := parsePreviewNodes(r, results); err != nil {
-					errCh <- err
-					return
-				}
-			},
-		}).Start()
+		if err := bh.processHTMLParsing(URL, results); err != nil {
+			errCh <- err
+			return
+		}
 	}()
 
 	return results, errCh
 }
 
-func parsePreviewNodes(r *client.Response, results chan *models.Block) error {
+func parsePreviewNodes(r *models.HTMLResponse, results chan *models.Block) error {
 
 	var mainError error
 
-	r.HTMLDoc.Find("article.tm-articles-list__item").Each(func(i int, s *goquery.Selection) {
+	doc := r.HTMLDoc.(*goquery.Document)
+	doc.Find("article").Each(func(i int, s *goquery.Selection) {
 		if mainError != nil {
 			return
 		}
@@ -86,6 +74,7 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 	duration := s.Find("span.tm-article-reading-time__label").Text()
 	views := s.Find("span.tm-icon-counter__value").Text()
 	title := s.Find("a.tm-title__link span").Text()
+	address, _ := s.Find("a.tm-title__link").Attr("href")
 
 	var types []string
 	s.Find("div.tm-publication-label a").Each(func(i int, s *goquery.Selection) {
@@ -113,11 +102,6 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 	})
 	descriptionStr := strings.TrimSpace(description.String())
 
-	address, ok := s.Find("a.tm-title__link").Attr("href")
-	if !ok {
-		return nil, ErrAttrNotFound
-	}
-
 	return &models.Block{
 		Id:          id,
 		Types:       types,
@@ -132,4 +116,27 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 		Description: descriptionStr,
 		URL:         address,
 	}, nil
+}
+
+func (bh *BlocksHelper) processHTMLParsing(URL string, results chan *models.Block) error {
+	resp, err := http.Get(URL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return ErrBadRequest
+	}
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	mockResponse := &models.HTMLResponse{
+		HTMLDoc: doc,
+	}
+
+	return parsePreviewNodes(mockResponse, results)
 }
