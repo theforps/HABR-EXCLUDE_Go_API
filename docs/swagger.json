@@ -1,0 +1,212 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API for parsing and analyzing content from habr.com/ru\n\n## Core Features:\n• Parse articles, news, and posts from Habr\n• Filter content by categories, tags, and rating\n• Pagination and multiple sorting options",
+        "title": "Habr Parser API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:3030",
+    "basePath": "/api/v1",
+    "paths": {
+        "/get-blocks": {
+            "get": {
+                "description": "Get all blocks for the current filters with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "blocks"
+                ],
+                "summary": "Get all blocks",
+                "parameters": [
+                    {
+                        "enum": [
+                            "posts",
+                            "articles",
+                            "news"
+                        ],
+                        "type": "string",
+                        "default": "articles",
+                        "description": "Type of content to retrieve",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "new",
+                            "top"
+                        ],
+                        "type": "string",
+                        "default": "new",
+                        "description": "Sorting method",
+                        "name": "sort",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number (1-50)",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "daily",
+                            "weekly",
+                            "monthly",
+                            "yearly",
+                            "alltime"
+                        ],
+                        "type": "string",
+                        "description": "Time period for filtering content",
+                        "name": "period",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "rated0",
+                            "rated10",
+                            "rated25",
+                            "rated50",
+                            "rated100"
+                        ],
+                        "type": "string",
+                        "description": "Filter by minimum rating percentage",
+                        "name": "rate",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "easy",
+                            "medium",
+                            "hard"
+                        ],
+                        "type": "string",
+                        "description": "Difficulty level filter",
+                        "name": "level",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BlocksDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid parameters provided",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Block": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "url": {
+                    "type": "string"
+                },
+                "views": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BlocksDTO": {
+            "type": "object",
+            "properties": {
+                "blocks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Block"
+                    }
+                },
+                "count_block": {
+                    "type": "integer"
+                },
+                "filters": {
+                    "$ref": "#/definitions/models.BlocksFilter"
+                }
+            }
+        },
+        "models.BlocksFilter": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "string"
+                },
+                "period": {
+                    "type": "string"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "rate": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

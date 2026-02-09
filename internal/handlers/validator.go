@@ -4,7 +4,7 @@ import (
 	"habrexclude/internal/models"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type GetBlocksRequest struct {
@@ -32,7 +32,7 @@ func NewValidateModel() *ValidateModel {
 	}
 }
 
-func (v *ValidateModel) ValidateRequest(c *fiber.Ctx, req interface{}) error {
+func (v *ValidateModel) ValidateRequest(c fiber.Ctx, req interface{}) error {
 	switch r := req.(type) {
 	case *GetBlocksRequest:
 		r.Sort = c.Query("sort", models.SortNew)

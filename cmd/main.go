@@ -4,23 +4,38 @@ import (
 	"habrexclude/internal/config"
 	"habrexclude/internal/handlers"
 	"habrexclude/internal/middleware"
-	"time"
+	_ "habrexclude/docs"
 
+	"time"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	swaggo "github.com/gofiber/contrib/v3/swaggo"
 )
 
+// @title Habr Parser API
+// @version 1.0
+// @description REST API for parsing and analyzing content from habr.com/ru
+// @description 
+// @description ## Core Features:
+// @description • Parse articles, news, and posts from Habr
+// @description • Filter content by categories, tags, and rating
+// @description • Pagination and multiple sorting options
+// 
+// @host localhost:3030
+// @BasePath /
 func main() {
 
 	baseLog := log.Default()
 	app := fiber.New(fiber.Config{
 		GETOnly: true,
+		ServerHeader: "HABR EXCLUDE",
 		AppName: "HABR EXCLUDE",
+		
 	})
 
 	app.Use(middleware.RateLimiter(1 * time.Second))
@@ -30,6 +45,18 @@ func main() {
 	config := config.New()
 	baseLog.Println("Config loaded, initializing handlers...")
 	handlers.InitHandler(app, config, baseLog)
+
+	if config.Mode == "dev" {
+		app.Get("/swagger/*", swaggo.HandlerDefault)
+		app.Get("/docs/*", swaggo.New(swaggo.Config{
+			Title: "API UI",
+			URL:               "./docs/swagger.json",
+			DeepLinking:       false,
+			DocExpansion:      "none",
+		}))
+	}
+
+
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

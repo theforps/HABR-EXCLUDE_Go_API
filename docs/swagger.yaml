@@ -1,0 +1,152 @@
+basePath: /api/v1
+definitions:
+  models.Block:
+    properties:
+      author:
+        type: string
+      description:
+        type: string
+      duration:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      level:
+        type: string
+      published_at:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      types:
+        items:
+          type: string
+        type: array
+      url:
+        type: string
+      views:
+        type: string
+    type: object
+  models.BlocksDTO:
+    properties:
+      blocks:
+        items:
+          $ref: '#/definitions/models.Block'
+        type: array
+      count_block:
+        type: integer
+      filters:
+        $ref: '#/definitions/models.BlocksFilter'
+    type: object
+  models.BlocksFilter:
+    properties:
+      level:
+        type: string
+      page:
+        type: string
+      period:
+        type: string
+      query:
+        type: string
+      rate:
+        type: string
+      sort:
+        type: string
+      type:
+        type: string
+    type: object
+host: localhost:3030
+info:
+  contact: {}
+  description: |-
+    REST API for parsing and analyzing content from habr.com/ru
+
+    ## Core Features:
+    • Parse articles, news, and posts from Habr
+    • Filter content by categories, tags, and rating
+    • Pagination and multiple sorting options
+  title: Habr Parser API
+  version: "1.0"
+paths:
+  /get-blocks:
+    get:
+      consumes:
+      - application/json
+      description: Get all blocks for the current filters with pagination
+      parameters:
+      - default: articles
+        description: Type of content to retrieve
+        enum:
+        - posts
+        - articles
+        - news
+        in: query
+        name: type
+        required: true
+        type: string
+      - default: new
+        description: Sorting method
+        enum:
+        - new
+        - top
+        in: query
+        name: sort
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-50)
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Time period for filtering content
+        enum:
+        - daily
+        - weekly
+        - monthly
+        - yearly
+        - alltime
+        in: query
+        name: period
+        type: string
+      - description: Filter by minimum rating percentage
+        enum:
+        - rated0
+        - rated10
+        - rated25
+        - rated50
+        - rated100
+        in: query
+        name: rate
+        type: string
+      - description: Difficulty level filter
+        enum:
+        - easy
+        - medium
+        - hard
+        in: query
+        name: level
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BlocksDTO'
+        "400":
+          description: Bad request - invalid parameters provided
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all blocks
+      tags:
+      - blocks
+swagger: "2.0"

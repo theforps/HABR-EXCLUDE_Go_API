@@ -7,4 +7,5 @@ type Config struct {
 	NewsUrl      string
 	SearchUrl    string
 	SearchRssUrl string
+	Mode string
 }

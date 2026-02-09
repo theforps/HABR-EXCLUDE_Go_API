@@ -22,5 +22,6 @@ func New() *models.Config {
 		ArticleUrl:   os.Getenv("ARTICLE_URL"),
 		SearchUrl:    os.Getenv("SEARCH_URL"),
 		SearchRssUrl: os.Getenv("SEARCH_RSS_URL"),
+		Mode: os.Getenv("MODE"),
 	}
 }

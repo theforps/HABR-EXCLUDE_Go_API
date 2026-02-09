@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type handler struct {
@@ -25,17 +25,35 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 		logger:         log,
 	}
 
-	app.Get("/api/get-blocks", handler.GetBlocks)
-	app.Get("/api/search-blocks", handler.SearchBlocks)
-	app.Get("/api/test", handler.Test)
+	api := app.Group("/api")
+	api.Get("/get-blocks", handler.GetBlocks)
+	api.Get("/search-blocks", handler.SearchBlocks)
+	api.Get("/test", handler.Test)
 	log.Println("Routes registered")
 }
 
-func (h *handler) GetBlocks(c *fiber.Ctx) error {
+// GetBlocks godoc
+// @Summary Get all blocks
+// @Description Get all blocks for the current filters with pagination
+// @Tags blocks
+// @Accept json
+// @Produce json
+// @Param type query string true "Type of content to retrieve" Enums(posts, articles, news) default(articles)
+// @Param sort query string true "Sorting method" Enums(new, top) default(new)
+// @Param page query int true "Page number (1-50)" default(1)
+// @Param period query string false "Time period for filtering content" Enums(daily, weekly, monthly, yearly, alltime)
+// @Param rate query string false "Filter by minimum rating percentage" Enums(rated0, rated10, rated25, rated50, rated100)
+// @Param level query string false "Difficulty level filter" Enums(easy, medium, hard)
+// @Success 200 {object} models.BlocksDTO
+// @Success 400 {object} string "Bad request - invalid parameters provided"
+// @Failure 500 {string} string "Internal server error"
+// @Router /api/get-blocks [get]
+func (h *handler) GetBlocks(c fiber.Ctx) error {
 	h.logger.Println("GetBlocks called")
 
 	req := &GetBlocksRequest{}
 	if err := h.validator.ValidateRequest(c, req); err != nil {
+		c.Response().Header.SetStatusCode(http.StatusBadRequest)
 		return err
 	}
 
@@ -66,7 +84,7 @@ func (h *handler) GetBlocks(c *fiber.Ctx) error {
 	return c.Send(jsonBody)
 }
 
-func (h *handler) SearchBlocks(c *fiber.Ctx) error {
+func (h *handler) SearchBlocks(c fiber.Ctx) error {
 	h.logger.Println("SearchBlocks called")
 
 	req := &SearchBlocksRequest{}
@@ -98,12 +116,12 @@ func (h *handler) SearchBlocks(c *fiber.Ctx) error {
 	return c.Send(jsonBody)
 }
 
-func (h *handler) GetBlockInfo(c *fiber.Ctx) error {
+func (h *handler) GetBlockInfo(c fiber.Ctx) error {
 
 	return c.SendStatus(http.StatusAccepted)
 }
 
-func (h *handler) Test(c *fiber.Ctx) error {
+func (h *handler) Test(c fiber.Ctx) error {
 	h.logger.Println("Test endpoint called")
 	return c.SendString("Test OK")
 }
