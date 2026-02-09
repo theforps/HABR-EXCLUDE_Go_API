@@ -10,13 +10,13 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type SearchHelper struct{}
+type SearchRssHelper struct{}
 
-func NewSearchHelper() *SearchHelper {
-	return &SearchHelper{}
+func NewSearchRssHelper() *SearchRssHelper {
+	return &SearchRssHelper{}
 }
 
-func (sh *SearchHelper) GetSearchResults(URL string) (chan *models.Block, chan error) {
+func (sh *SearchRssHelper) GetSearchResults(URL string) (chan *models.Block, chan error) {
 	results := make(chan *models.Block)
 	errCh := make(chan error, 1)
 
@@ -33,7 +33,7 @@ func (sh *SearchHelper) GetSearchResults(URL string) (chan *models.Block, chan e
 	return results, errCh
 }
 
-func (sh *SearchHelper) processSearch(URL string, results chan *models.Block) error {
+func (sh *SearchRssHelper) processSearch(URL string, results chan *models.Block) error {
 	resp, err := http.Get(URL)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (sh *SearchHelper) processSearch(URL string, results chan *models.Block) er
 	return nil
 }
 
-func (sh *SearchHelper) parseRSSItem(item models.Item) *models.Block {
+func (sh *SearchRssHelper) parseRSSItem(item models.Item) *models.Block {
 	pubDate, err := time.Parse(time.RFC1123, item.PubDate)
 	if err != nil {
 
@@ -103,7 +103,7 @@ func (sh *SearchHelper) parseRSSItem(item models.Item) *models.Block {
 	}
 }
 
-func (sh *SearchHelper) extractTextFromHTML(html string) string {
+func (sh *SearchRssHelper) extractTextFromHTML(html string) string {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return html
@@ -120,7 +120,7 @@ func (sh *SearchHelper) extractTextFromHTML(html string) string {
 	return text
 }
 
-func (sh *SearchHelper) extractImageFromHTML(html string) string {
+func (sh *SearchRssHelper) extractImageFromHTML(html string) string {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
 		return ""
@@ -134,7 +134,7 @@ func (sh *SearchHelper) extractImageFromHTML(html string) string {
 	return ""
 }
 
-func (sh *SearchHelper) cleanURL(url string) string {
+func (sh *SearchRssHelper) cleanURL(url string) string {
 	if idx := strings.Index(url, "?"); idx != -1 {
 		return url[:idx]
 	}

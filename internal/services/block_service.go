@@ -51,10 +51,16 @@ func (bh *BlocksService) BuildURL(filter *models.BlocksFilter) string {
 	var url string
 
 	if filter.Query != "" {
-		url = fmt.Sprintf("%s?q=%s&order_by=%s&target_type=posts&hl=ru&fl=ru&fl=ru",
-			bh.config.SearchUrl, filter.Query, filter.Sort)
-		
+		var page string
+		if filter.Page != "1" {
+			page = "page" + filter.Page + "/"
+		}
+		url = fmt.Sprintf("%s%s?q=%s&target_type=posts&order=%s",
+			bh.config.SearchUrl, page, filter.Query, filter.Sort)
 
+		//RSS
+		// url = fmt.Sprintf("%s?q=%s&order_by=%s&target_type=posts&hl=ru&fl=ru&fl=ru",
+		// 	bh.config.SearchRssUrl, filter.Query, filter.Sort)
 	} else {
 		switch filter.Type {
 		// Обычный запрос контента

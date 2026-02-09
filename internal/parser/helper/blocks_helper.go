@@ -2,6 +2,7 @@ package helper
 
 import (
 	"habrexclude/internal/models"
+
 	"net/http"
 	"strings"
 	"time"
@@ -58,14 +59,10 @@ func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 		return nil, ErrAttrNotFound
 	}
 
+	date := time.Now()
 	published, ok := s.Find("a.tm-article-datetime-published time").Attr("datetime")
-	if !ok {
-		return nil, ErrAttrNotFound
-	}
-
-	date, err := time.Parse("2006-01-02T15:04:05Z", published)
-	if err != nil {
-		return nil, ErrInvalidDate
+	if ok {
+		date, _ = time.Parse("2006-01-02T15:04:05Z", published)
 	}
 
 	image, _ := s.Find("img.lead-image").Attr("src")

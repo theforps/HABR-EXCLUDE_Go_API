@@ -11,7 +11,7 @@ func RateLimiter(delay time.Duration) fiber.Handler {
 	limiter <- struct{}{}
 
 	return func(c *fiber.Ctx) error {
-		<- limiter
+		<-limiter
 
 		go func() {
 			time.Sleep(delay)

@@ -6,19 +6,19 @@ import (
 )
 
 type BlocksFetcher struct {
-	helper       *helper.BlocksHelper
-	searchHelper *helper.SearchHelper
+	blocksHelper    *helper.BlocksHelper
+	searchRssHelper *helper.SearchRssHelper
 }
 
 func NewBlocksFetcher() *BlocksFetcher {
 	return &BlocksFetcher{
-		helper:       helper.NewBlocksHelper(),
-		searchHelper: helper.NewSearchHelper(),
+		blocksHelper:    helper.NewBlocksHelper(),
+		searchRssHelper: helper.NewSearchRssHelper(),
 	}
 }
 
 func (af *BlocksFetcher) GetAll(URL string) ([]*models.Block, error) {
-	ch, errCh := af.helper.GetBlocksAsync(URL)
+	ch, errCh := af.blocksHelper.GetBlocksAsync(URL)
 
 	var results []*models.Block
 	for block := range ch {
@@ -37,7 +37,10 @@ func (af *BlocksFetcher) GetAll(URL string) ([]*models.Block, error) {
 }
 
 func (af *BlocksFetcher) Search(URL string) ([]*models.Block, error) {
-	ch, errCh := af.searchHelper.GetSearchResults(URL)
+	// use RSS
+	// ch, errCh := af.searchRssHelper.GetSearchResults(URL)
+
+	ch, errCh := af.blocksHelper.GetBlocksAsync(URL)
 
 	var results []*models.Block
 	for block := range ch {
