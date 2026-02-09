@@ -16,10 +16,11 @@ func New() *models.Config {
 	}
 
 	return &models.Config{
-		BaseUrl:    os.Getenv("BASE_URL"),
-		PostUrl:    os.Getenv("POST_URL"),
-		NewsUrl:    os.Getenv("NEWS_URL"),
-		ArticleUrl: os.Getenv("ARTICLE_URL"),
-		SearchUrl:  os.Getenv("SEARCH_URL"),
+		BaseUrl:      os.Getenv("BASE_URL"),
+		PostUrl:      os.Getenv("POST_URL"),
+		NewsUrl:      os.Getenv("NEWS_URL"),
+		ArticleUrl:   os.Getenv("ARTICLE_URL"),
+		SearchUrl:    os.Getenv("SEARCH_URL"),
+		SearchRssUrl: os.Getenv("SEARCH_RSS_URL"),
 	}
 }
