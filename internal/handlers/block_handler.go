@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"habrexclude/internal/models"
 	"habrexclude/internal/services"
+	
 	"log"
 	"net/http"
 
@@ -14,7 +15,8 @@ type handler struct {
 	articleService *services.BlocksService
 	validator      *ValidateModel
 	logger         *log.Logger
-}
+	config *models.Config
+	}
 
 func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 	log.Println("InitHandler called")
@@ -23,14 +25,17 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 		validator:      NewValidateModel(),
 		articleService: services.NewArticleService(conf, log),
 		logger:         log,
+		config: conf,
 	}
 
 	api := app.Group("/api")
 	api.Get("/get-blocks", handler.GetBlocks)
 	api.Get("/search-blocks", handler.SearchBlocks)
 	api.Get("/test", handler.Test)
+	api.Get("/test-habr", handler.TestHabr)
 	log.Println("Routes registered")
 }
+
 
 // GetBlocks godoc
 // @Summary Get all blocks
@@ -49,8 +54,6 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 // @Failure 500 {string} string "Internal server error"
 // @Router /api/get-blocks [get]
 func (h *handler) GetBlocks(c fiber.Ctx) error {
-	h.logger.Println("GetBlocks called")
-
 	req := &GetBlocksRequest{}
 	if err := h.validator.ValidateRequest(c, req); err != nil {
 		c.Response().Header.SetStatusCode(http.StatusBadRequest)
@@ -84,11 +87,24 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 	return c.Send(jsonBody)
 }
 
-func (h *handler) SearchBlocks(c fiber.Ctx) error {
-	h.logger.Println("SearchBlocks called")
 
+// SearchBlocks godoc
+// @Summary Search all blocks by filters
+// @Description Search all blocks for the current filters with pagination
+// @Tags blocks
+// @Accept json
+// @Produce json
+// @Param query query string true "Query for search" default(1)
+// @Param sort query string true "Sorting method" Enums(relevance, date, rating) default(relevance)
+// @Param page query int true "Page number (1-50)" default(1)
+// @Success 200 {object} models.BlocksDTO
+// @Success 400 {object} string "Bad request - invalid parameters provided"
+// @Failure 500 {string} string "Internal server error"
+// @Router /api/search-blocks [get]
+func (h *handler) SearchBlocks(c fiber.Ctx) error {
 	req := &SearchBlocksRequest{}
 	if err := h.validator.ValidateRequest(c, req); err != nil {
+		c.Response().Header.SetStatusCode(http.StatusBadRequest)
 		return err
 	}
 
@@ -116,12 +132,40 @@ func (h *handler) SearchBlocks(c fiber.Ctx) error {
 	return c.Send(jsonBody)
 }
 
+
 func (h *handler) GetBlockInfo(c fiber.Ctx) error {
 
 	return c.SendStatus(http.StatusAccepted)
 }
 
+
+// TestHabr godoc
+// @Summary Test connection
+// @Description Test connection to HABR
+// @Tags test
+// @Success 200 {string} string
+// @Failure 500 {string} string "Internal server error"
+// @Router /api/test-habr [get]
+func (h *handler) TestHabr(c fiber.Ctx) error {
+	response, err := http.Get(h.config.BaseUrl)
+	if err != nil || response.StatusCode != 200 {
+		h.logger.Println(err)
+		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
+		return c.SendString("Lost connection to HABR")
+	}
+
+	c.Response().Header.SetStatusCode(http.StatusOK)
+	return c.SendString("Test OK")
+}
+
+
+// Test godoc
+// @Summary Test connection
+// @Description Test connection to server
+// @Tags test
+// @Success 200 {string} string
+// @Router /api/test [get]
 func (h *handler) Test(c fiber.Ctx) error {
-	h.logger.Println("Test endpoint called")
+	c.Response().Header.SetStatusCode(http.StatusOK)
 	return c.SendString("Test OK")
 }
