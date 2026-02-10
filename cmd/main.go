@@ -4,7 +4,7 @@ import (
 	"habrexclude/internal/config"
 	"habrexclude/internal/handlers"
 	"habrexclude/internal/middleware"
-	_ "habrexclude/docs"
+	docs "habrexclude/docs"
 
 	"time"
 	"log"
@@ -47,6 +47,9 @@ func main() {
 	handlers.InitHandler(app, config, baseLog)
 
 	if config.Mode == "dev" {
+		if config.SwaggerHost != "" {
+			docs.SwaggerInfo.Host = config.SwaggerHost
+		}
 		app.Get("/swagger/*", swaggo.HandlerDefault)
 		app.Get("/docs/*", swaggo.New(swaggo.Config{
 			Title: "API UI",
@@ -55,8 +58,6 @@ func main() {
 			DocExpansion:      "none",
 		}))
 	}
-
-
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

@@ -23,5 +23,6 @@ func New() *models.Config {
 		SearchUrl:    os.Getenv("SEARCH_URL"),
 		SearchRssUrl: os.Getenv("SEARCH_RSS_URL"),
 		Mode: os.Getenv("MODE"),
+		SwaggerHost: os.Getenv("SWAGGER_HOST"),
 	}
 }

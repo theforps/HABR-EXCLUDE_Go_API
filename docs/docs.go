@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/get-blocks": {
+        "/api/get-blocks": {
             "get": {
                 "description": "Get all blocks for the current filters with pagination",
                 "consumes": [
@@ -109,6 +109,112 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad request - invalid parameters provided",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/search-blocks": {
+            "get": {
+                "description": "Search all blocks for the current filters with pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "blocks"
+                ],
+                "summary": "Search all blocks by filters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "1",
+                        "description": "Query for search",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "relevance",
+                            "date",
+                            "rating"
+                        ],
+                        "type": "string",
+                        "default": "relevance",
+                        "description": "Sorting method",
+                        "name": "sort",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number (1-50)",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.BlocksDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid parameters provided",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/test": {
+            "get": {
+                "description": "Test connection to server",
+                "tags": [
+                    "test"
+                ],
+                "summary": "Test connection",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/test-habr": {
+            "get": {
+                "description": "Test connection to HABR",
+                "tags": [
+                    "test"
+                ],
+                "summary": "Test connection",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -221,7 +327,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:3030",
-	BasePath:         "/api/v1",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Habr Parser API",
 	Description:      "REST API for parsing and analyzing content from habr.com/ru\n\n## Core Features:\n• Parse articles, news, and posts from Habr\n• Filter content by categories, tags, and rating\n• Pagination and multiple sorting options",

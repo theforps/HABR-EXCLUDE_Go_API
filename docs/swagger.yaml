@@ -1,4 +1,4 @@
-basePath: /api/v1
+basePath: /
 definitions:
   models.Block:
     properties:
@@ -72,7 +72,7 @@ info:
   title: Habr Parser API
   version: "1.0"
 paths:
-  /get-blocks:
+  /api/get-blocks:
     get:
       consumes:
       - application/json
@@ -149,4 +149,76 @@ paths:
       summary: Get all blocks
       tags:
       - blocks
+  /api/search-blocks:
+    get:
+      consumes:
+      - application/json
+      description: Search all blocks for the current filters with pagination
+      parameters:
+      - default: "1"
+        description: Query for search
+        in: query
+        name: query
+        required: true
+        type: string
+      - default: relevance
+        description: Sorting method
+        enum:
+        - relevance
+        - date
+        - rating
+        in: query
+        name: sort
+        required: true
+        type: string
+      - default: 1
+        description: Page number (1-50)
+        in: query
+        name: page
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.BlocksDTO'
+        "400":
+          description: Bad request - invalid parameters provided
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Search all blocks by filters
+      tags:
+      - blocks
+  /api/test:
+    get:
+      description: Test connection to server
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Test connection
+      tags:
+      - test
+  /api/test-habr:
+    get:
+      description: Test connection to HABR
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Test connection
+      tags:
+      - test
 swagger: "2.0"

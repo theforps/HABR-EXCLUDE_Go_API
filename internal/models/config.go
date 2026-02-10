@@ -8,4 +8,5 @@ type Config struct {
 	SearchUrl    string
 	SearchRssUrl string
 	Mode string
+	SwaggerHost string
 }
