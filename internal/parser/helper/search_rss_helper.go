@@ -41,7 +41,7 @@ func (sh *SearchRssHelper) processSearch(URL string, results chan *models.Block)
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return ErrBadRequest
+		return models.ErrBadRequest
 	}
 
 	var rss models.RSS

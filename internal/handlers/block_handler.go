@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"habrexclude/internal/models"
 	"habrexclude/internal/services"
-	
+
 	"log"
 	"net/http"
 
@@ -15,17 +15,15 @@ type handler struct {
 	articleService *services.BlocksService
 	validator      *ValidateModel
 	logger         *log.Logger
-	config *models.Config
-	}
+	config         *models.Config
+}
 
 func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
-	log.Println("InitHandler called")
-
 	handler := handler{
 		validator:      NewValidateModel(),
 		articleService: services.NewArticleService(conf, log),
 		logger:         log,
-		config: conf,
+		config:         conf,
 	}
 
 	api := app.Group("/api")
@@ -33,9 +31,7 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 	api.Get("/search-blocks", handler.SearchBlocks)
 	api.Get("/test", handler.Test)
 	api.Get("/test-habr", handler.TestHabr)
-	log.Println("Routes registered")
 }
-
 
 // GetBlocks godoc
 // @Summary Get all blocks
@@ -71,13 +67,14 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 
 	results, err := h.articleService.GetAll(filter)
 	if err != nil {
+		h.logger.Printf("Error getting blocks: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
-		log.Println(err)
 		return c.SendString("Coudn't get blocks")
 	}
 
 	jsonBody, err := json.Marshal(results)
 	if err != nil {
+		h.logger.Printf("Error marshal blocks: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
 		return c.SendString("Coudn't marshal blocks")
 	}
@@ -86,7 +83,6 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 	c.Response().Header.Set("Content-Type", "application/json")
 	return c.Send(jsonBody)
 }
-
 
 // SearchBlocks godoc
 // @Summary Search all blocks by filters
@@ -123,6 +119,7 @@ func (h *handler) SearchBlocks(c fiber.Ctx) error {
 
 	jsonBody, err := json.Marshal(results)
 	if err != nil {
+		h.logger.Printf("Error marshal blocks: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
 		return c.SendString("Coudn't marshal blocks")
 	}
@@ -132,12 +129,10 @@ func (h *handler) SearchBlocks(c fiber.Ctx) error {
 	return c.Send(jsonBody)
 }
 
-
 func (h *handler) GetBlockInfo(c fiber.Ctx) error {
 
 	return c.SendStatus(http.StatusAccepted)
 }
-
 
 // TestHabr godoc
 // @Summary Test connection
@@ -149,7 +144,7 @@ func (h *handler) GetBlockInfo(c fiber.Ctx) error {
 func (h *handler) TestHabr(c fiber.Ctx) error {
 	response, err := http.Get(h.config.BaseUrl)
 	if err != nil || response.StatusCode != 200 {
-		h.logger.Println(err)
+		h.logger.Printf("Error connecting to HABR: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
 		return c.SendString("Lost connection to HABR")
 	}
@@ -157,7 +152,6 @@ func (h *handler) TestHabr(c fiber.Ctx) error {
 	c.Response().Header.SetStatusCode(http.StatusOK)
 	return c.SendString("Test OK")
 }
-
 
 // Test godoc
 // @Summary Test connection

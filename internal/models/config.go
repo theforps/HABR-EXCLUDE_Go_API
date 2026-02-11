@@ -7,6 +7,6 @@ type Config struct {
 	NewsUrl      string
 	SearchUrl    string
 	SearchRssUrl string
-	Mode string
-	SwaggerHost string
+	Mode         string
+	SwaggerHost  string
 }

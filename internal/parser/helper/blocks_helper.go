@@ -56,7 +56,7 @@ func parsePreviewNodes(r *models.HTMLResponse, results chan *models.Block) error
 func parsePreviewNode(s *goquery.Selection) (*models.Block, error) {
 	id, ok := s.Attr("id")
 	if !ok {
-		return nil, ErrAttrNotFound
+		return nil, models.ErrAttrNotFound
 	}
 
 	date := time.Now()
@@ -123,7 +123,7 @@ func (bh *BlocksHelper) processHTMLParsing(URL string, results chan *models.Bloc
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return ErrBadRequest
+		return models.ErrBadRequest
 	}
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
