@@ -72,6 +72,35 @@ info:
   title: Habr Parser API
   version: "1.0"
 paths:
+  /api/get-block-info:
+    get:
+      consumes:
+      - application/json
+      description: Get block info by URL
+      parameters:
+      - description: URL of block
+        in: query
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad request - invalid parameters provided
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get block info
+      tags:
+      - blocks
   /api/get-blocks:
     get:
       consumes:
@@ -195,18 +224,7 @@ paths:
       summary: Search all blocks by filters
       tags:
       - blocks
-  /api/test:
-    get:
-      description: Test connection to server
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: Test connection
-      tags:
-      - test
-  /api/test-habr:
+  /test/test-habr:
     get:
       description: Test connection to HABR
       responses:
@@ -216,6 +234,17 @@ paths:
             type: string
         "500":
           description: Internal server error
+          schema:
+            type: string
+      summary: Test connection
+      tags:
+      - test
+  /test/test-server:
+    get:
+      description: Test connection to server
+      responses:
+        "200":
+          description: OK
           schema:
             type: string
       summary: Test connection

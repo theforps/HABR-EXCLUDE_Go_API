@@ -15,6 +15,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/get-block-info": {
+            "get": {
+                "description": "Get block info by URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "blocks"
+                ],
+                "summary": "Get block info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL of block",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - invalid parameters provided",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/get-blocks": {
             "get": {
                 "description": "Get all blocks for the current filters with pagination",
@@ -188,24 +232,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/test": {
-            "get": {
-                "description": "Test connection to server",
-                "tags": [
-                    "test"
-                ],
-                "summary": "Test connection",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/test-habr": {
+        "/test/test-habr": {
             "get": {
                 "description": "Test connection to HABR",
                 "tags": [
@@ -221,6 +248,23 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/test/test-server": {
+            "get": {
+                "description": "Test connection to server",
+                "tags": [
+                    "test"
+                ],
+                "summary": "Test connection",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
