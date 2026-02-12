@@ -35,7 +35,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the binary, env template, and Swagger docs from builder stage
-COPY --from=builder /app/main .
+COPY --from=builder /app/parser .
 COPY --from=builder /app/.env.example .env
 COPY --from=builder /app/docs ./docs/
 
