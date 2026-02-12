@@ -43,7 +43,7 @@ func main() {
 	config := config.New()
 
 	baseLog.Println("Initializing handlers...")
-	handlers.InitHandler(app, config, baseLog)
+	handlers.InitHandlers(app, config, baseLog)
 
 	if config.Mode == "dev" {
 		if config.SwaggerHost != "" {

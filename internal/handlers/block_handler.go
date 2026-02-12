@@ -11,26 +11,60 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-type handler struct {
-	articleService *services.BlocksService
-	validator      *ValidateModel
-	logger         *log.Logger
-	config         *models.Config
+type BlockHandler struct {
+	blockService *services.BlocksService
+	validator    *ValidateModel
+	logger       *log.Logger
 }
 
-func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
-	handler := handler{
-		validator:      NewValidateModel(),
-		articleService: services.NewArticleService(conf, log),
-		logger:         log,
-		config:         conf,
+func InitBlockHandler(app *fiber.App, config *models.Config, log *log.Logger) {
+	blockHandler := BlockHandler{
+		validator:    NewValidateModel(),
+		blockService: services.NewBlockService(config, log),
+		logger:       log,
 	}
 
 	api := app.Group("/api")
-	api.Get("/get-blocks", handler.GetBlocks)
-	api.Get("/search-blocks", handler.SearchBlocks)
-	api.Get("/test", handler.Test)
-	api.Get("/test-habr", handler.TestHabr)
+	api.Get("/get-blocks", blockHandler.GetBlocks)
+	api.Get("/get-block-info", blockHandler.GetBlockInfo)
+	api.Get("/search-blocks", blockHandler.SearchBlocks)
+}
+
+// GetBlockInfo godoc
+// @Summary Get block info
+// @Description Get block info by URL
+// @Tags blocks
+// @Accept json
+// @Produce json
+// @Param block_url query string true "URL of block"
+// @Success 200 {string} string
+// @Success 400 {object} string "Bad request - invalid parameters provided"
+// @Failure 500 {string} string "Internal server error"
+// @Router /api/get-block-info [get]
+func (bh *BlockHandler) GetBlockInfo(c fiber.Ctx) error {
+	url := c.Query("block_url", "")
+	if url == "" {
+		c.Response().Header.SetStatusCode(http.StatusBadRequest)
+		return c.SendString("Block URL is empty")
+	}
+
+	block, err := bh.blockService.Get(url)
+	if err != nil {
+		bh.logger.Printf("Error getting block info: %v", err)
+		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
+		return c.SendString("Coudn't get block info")
+	}
+
+	jsonBody, err := json.Marshal(block)
+	if err != nil {
+		bh.logger.Printf("Error marshal block info: %v", err)
+		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
+		return c.SendString("Coudn't marshal block info")
+	}
+
+	c.Response().Header.SetStatusCode(http.StatusOK)
+	c.Response().Header.Set("Content-Type", "application/json")
+	return c.Send(jsonBody)
 }
 
 // GetBlocks godoc
@@ -49,9 +83,9 @@ func InitHandler(app *fiber.App, conf *models.Config, log *log.Logger) {
 // @Success 400 {object} string "Bad request - invalid parameters provided"
 // @Failure 500 {string} string "Internal server error"
 // @Router /api/get-blocks [get]
-func (h *handler) GetBlocks(c fiber.Ctx) error {
+func (bh *BlockHandler) GetBlocks(c fiber.Ctx) error {
 	req := &GetBlocksRequest{}
-	if err := h.validator.ValidateRequest(c, req); err != nil {
+	if err := bh.validator.ValidateRequest(c, req); err != nil {
 		c.Response().Header.SetStatusCode(http.StatusBadRequest)
 		return err
 	}
@@ -65,16 +99,16 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 		Type:   req.Type,
 	}
 
-	results, err := h.articleService.GetAll(filter)
+	results, err := bh.blockService.GetAll(filter)
 	if err != nil {
-		h.logger.Printf("Error getting blocks: %v", err)
+		bh.logger.Printf("Error getting blocks: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
 		return c.SendString("Coudn't get blocks")
 	}
 
 	jsonBody, err := json.Marshal(results)
 	if err != nil {
-		h.logger.Printf("Error marshal blocks: %v", err)
+		bh.logger.Printf("Error marshal blocks: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
 		return c.SendString("Coudn't marshal blocks")
 	}
@@ -97,7 +131,7 @@ func (h *handler) GetBlocks(c fiber.Ctx) error {
 // @Success 400 {object} string "Bad request - invalid parameters provided"
 // @Failure 500 {string} string "Internal server error"
 // @Router /api/search-blocks [get]
-func (h *handler) SearchBlocks(c fiber.Ctx) error {
+func (h *BlockHandler) SearchBlocks(c fiber.Ctx) error {
 	req := &SearchBlocksRequest{}
 	if err := h.validator.ValidateRequest(c, req); err != nil {
 		c.Response().Header.SetStatusCode(http.StatusBadRequest)
@@ -110,7 +144,7 @@ func (h *handler) SearchBlocks(c fiber.Ctx) error {
 		Page:  req.Page,
 	}
 
-	results, err := h.articleService.GetAll(filter)
+	results, err := h.blockService.GetAll(filter)
 	if err != nil {
 		h.logger.Printf("Error getting blocks: %v", err)
 		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
@@ -127,39 +161,4 @@ func (h *handler) SearchBlocks(c fiber.Ctx) error {
 	c.Response().Header.SetStatusCode(http.StatusOK)
 	c.Response().Header.Set("Content-Type", "application/json")
 	return c.Send(jsonBody)
-}
-
-func (h *handler) GetBlockInfo(c fiber.Ctx) error {
-
-	return c.SendStatus(http.StatusAccepted)
-}
-
-// TestHabr godoc
-// @Summary Test connection
-// @Description Test connection to HABR
-// @Tags test
-// @Success 200 {string} string
-// @Failure 500 {string} string "Internal server error"
-// @Router /api/test-habr [get]
-func (h *handler) TestHabr(c fiber.Ctx) error {
-	response, err := http.Get(h.config.BaseUrl)
-	if err != nil || response.StatusCode != 200 {
-		h.logger.Printf("Error connecting to HABR: %v", err)
-		c.Response().Header.SetStatusCode(http.StatusInternalServerError)
-		return c.SendString("Lost connection to HABR")
-	}
-
-	c.Response().Header.SetStatusCode(http.StatusOK)
-	return c.SendString("Test OK")
-}
-
-// Test godoc
-// @Summary Test connection
-// @Description Test connection to server
-// @Tags test
-// @Success 200 {string} string
-// @Router /api/test [get]
-func (h *handler) Test(c fiber.Ctx) error {
-	c.Response().Header.SetStatusCode(http.StatusOK)
-	return c.SendString("Test OK")
 }
