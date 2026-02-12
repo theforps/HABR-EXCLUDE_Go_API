@@ -13,12 +13,26 @@ type BlocksService struct {
 	config       *models.Config
 }
 
-func NewArticleService(conf *models.Config, log *log.Logger) *BlocksService {
+func NewBlockService(conf *models.Config, log *log.Logger) *BlocksService {
 	return &BlocksService{
 		blockFetcher: parser.NewBlocksFetcher(),
 		logger:       log,
 		config:       conf,
 	}
+}
+
+func (bs *BlocksService) Get(URL string) (*models.BlockInfo, error) {
+	url := bs.config.BaseUrl + URL
+	var block *models.BlockInfo
+
+	// cache check
+	// if cache nil
+	block, err := bs.blockFetcher.GetBlockInfo(url)
+	if err != nil {
+		return nil, err
+	}
+	// set cache
+	return block, nil
 }
 
 func (as *BlocksService) GetAll(filter *models.BlocksFilter) (*models.BlocksDTO, error) {
